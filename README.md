@@ -8,3 +8,7 @@ go
 -Toggles the LED and prints a message
 
 Thrown together, will be tidied up and more functionality added.
+
+Todo:
+
+More commands
