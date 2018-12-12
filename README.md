@@ -7,4 +7,4 @@ Open a terminal, only one supported command so far:
 go
 -Toggles the LED and prints a message
 
-Thrown together, will be tidied up and more functionality added
+Thrown together, will be tidied up and more functionality added.
