@@ -97,23 +97,14 @@ uint8_t cmdFail[] = "\r\nCommand not recognised...\r\n>";
 /* USER CODE BEGIN 0 */
 void printInfo()
 {
-	int HalVersion;
-	uint16_t flashSize;
-//	uint32_t RevID;
-//	uint32_t DevID;
-	int UIDw0;
-	int UIDw1;
-	int UIDw2;
-//	uint32_t IDcode;
+	uint16_t flashSize = READ_REG(*((uint16_t *)FLASHSIZE_BASE));
 
-	HalVersion = HAL_GetHalVersion();
-	flashSize = READ_REG(*((uint32_t *)FLASHSIZE_BASE));
-//	RevID = HAL_GetREVID();
-//	DevID = HAL_GetDEVID();
-	UIDw0 = HAL_GetUIDw0();
-	UIDw1 = HAL_GetUIDw1();
-	UIDw2 = HAL_GetUIDw2();
-//	IDcode = DBGMCU->IDCODE;
+	int HalVersion = HAL_GetHalVersion();
+	int RevID = HAL_GetREVID();
+	int DevID = HAL_GetDEVID();
+	int UIDw0 = HAL_GetUIDw0();
+	int UIDw1 = HAL_GetUIDw1();
+	int UIDw2 = HAL_GetUIDw2();
 
 	sprintf(&strBuff[0], "STM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
 		   (HalVersion >> 24),
@@ -124,9 +115,13 @@ void printInfo()
 	HAL_Delay(500); // Wait for connection to Tera Term (or whatever) before printing
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 
-	sprintf(&strBuff[0], "Flash: %d Kbytes\r\n", flashSize);
+	sprintf(&strBuff[0], "Flash  : %d Kbytes\r\n", flashSize);
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
-	sprintf(&strBuff[0], "UID:   %d%d%d\r\n", UIDw2, UIDw1, UIDw0);
+	sprintf(&strBuff[0], "UID    : %d%d%d\r\n", UIDw2, UIDw1, UIDw0);
+	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	sprintf(&strBuff[0], "Dev ID : 0x%03x\r\n", DevID);
+	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	sprintf(&strBuff[0], "Rev ID : 0x%04x\r\n", RevID);
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 }
 
@@ -174,12 +169,11 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-uint8_t response[] = "\r\nbuffer overflow\r\n>";
-tempBuff.fullFlag = false;
-tempBuff.cmdReady = false;
-tempBuff.count = 0;
-memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
-//memset(&strBuff, 0x00, sizeof(strBuff));
+  uint8_t response[] = "\r\nbuffer overflow\r\n>";
+  tempBuff.fullFlag = false;
+  tempBuff.cmdReady = false;
+  tempBuff.count = 0;
+  memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
 
   /* USER CODE END 1 */
 
