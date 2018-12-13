@@ -48,7 +48,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
-#include "stm32l0xx_hal_rcc_ex.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -211,17 +210,17 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
   // See whether we have been reset and how it occurred
-  if (RCC->CSR & RCC_CSR_SFTRSTF) //TODO:Add more reset reasons
+  if __HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST)   //TODO:Add more reset reasons
   {
     softReset = true;
   }
-  if (RCC->CSR & RCC_CSR_PINRSTF)
+  if __HAL_RCC_GET_FLAG(RCC_FLAG_PINRST)
   {
 	pinReset = true;
   }
 
   // Clear the reset flags
-  RCC->CSR |= RCC_CSR_RMVF;
+  __HAL_RCC_CLEAR_RESET_FLAGS();
 
   /* USER CODE END SysInit */
 
