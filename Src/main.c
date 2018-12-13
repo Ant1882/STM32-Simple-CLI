@@ -48,6 +48,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include "stm32l0xx_hal_rcc_ex.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -86,6 +87,8 @@ struct UART2_Rx tempBuff;
 uint8_t* ptrTempBuff = &tempBuff.buff[0];
 
 char strBuff[128];
+bool softReset = false;
+bool pinReset = false;
 
 uint8_t goCmd[] = "go";
 uint8_t rstCmd[] = "reset";
@@ -107,6 +110,18 @@ void printInfo()
 	int UIDw1 = HAL_GetUIDw1();
 	int UIDw2 = HAL_GetUIDw2();
 	int HCLKF = HAL_RCC_GetHCLKFreq();
+
+	if(pinReset)
+	{
+		sprintf(&strBuff[0], "\r\nPin triggered reset occurred...\r\n");
+		HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	}
+
+	if(softReset)
+	{
+		sprintf(&strBuff[0], "\r\nSoftware triggered reset occurred...\r\n");
+		HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	}
 
 	sprintf(&strBuff[0], "\r\nSTM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
 		   (HalVersion >> 24),
@@ -195,6 +210,18 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  // See whether we have been reset and how it occurred
+  if (RCC->CSR & RCC_CSR_SFTRSTF) //TODO:Add more reset reasons
+  {
+    softReset = true;
+  }
+  if (RCC->CSR & RCC_CSR_PINRSTF)
+  {
+	pinReset = true;
+  }
+
+  // Clear the reset flags
+  RCC->CSR |= RCC_CSR_RMVF;
 
   /* USER CODE END SysInit */
 
