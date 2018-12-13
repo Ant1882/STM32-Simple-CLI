@@ -105,6 +105,7 @@ void printInfo()
 	int UIDw0 = HAL_GetUIDw0();
 	int UIDw1 = HAL_GetUIDw1();
 	int UIDw2 = HAL_GetUIDw2();
+	int HCLKF = HAL_RCC_GetHCLKFreq();
 
 	sprintf(&strBuff[0], "\r\nSTM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
 		   (HalVersion >> 24),
@@ -121,7 +122,9 @@ void printInfo()
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	sprintf(&strBuff[0], "Dev ID : 0x%03x\r\n", DevID);
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
-	sprintf(&strBuff[0], "Rev ID : 0x%04x\r\n\n>", RevID);
+	sprintf(&strBuff[0], "Rev ID : 0x%04x\r\n", RevID);
+	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	sprintf(&strBuff[0], "HCLK   : %d Hz\r\n\n>", HCLKF);
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 }
 
