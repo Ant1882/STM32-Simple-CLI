@@ -7,10 +7,14 @@ Using the default setting of the board, with UART2 connected through the ST-LINK
 
 Open a terminal (115200, 8 bit, no parity, 1 stop bit, no flow control)
 
-Only one supported command so far:
-
+Supported commands:
+----------------------------------------
 go
 -Toggles the LED and prints a message
+
+reset
+-Reset the MCU
+----------------------------------------
 
 Thrown together, will be tidied up and more functionality added.
 

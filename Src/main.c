@@ -87,7 +87,8 @@ uint8_t* ptrTempBuff = &tempBuff.buff[0];
 
 char strBuff[128];
 
-uint8_t cmd[] = "go";
+uint8_t goCmd[] = "go";
+uint8_t rstCmd[] = "reset";
 uint8_t reply[] = "\r\nLED Toggled...\r\n>";
 uint8_t prompt[] = "\r\n>";
 uint8_t cmdFail[] = "\r\nCommand not recognised...\r\n>";
@@ -236,11 +237,17 @@ int main(void)
 		if(tempBuff.count > 0)
 		{
 			// We have at least one character plus CR, so process
-			if(strcmp((const char*)cmd, (const char*)tempBuff.buff) == 0)
+			if(strcmp((const char*)goCmd, (const char*)tempBuff.buff) == 0)
 			{
 				// Do something and give a response
 				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 				HAL_UART_Transmit_IT(&huart2, &reply[0], sizeof(reply));
+			}
+			else if(strcmp((const char*)rstCmd, (const char*)tempBuff.buff) == 0)
+			{
+				sprintf(&strBuff[0], "\r\nResetting MCU...\r\n");
+				HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+				NVIC_SystemReset();
 			}
 			else
 			{
