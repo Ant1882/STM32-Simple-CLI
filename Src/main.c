@@ -47,6 +47,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,7 +68,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#define RX_BUFF_SIZE	8
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,7 +79,7 @@ struct UART2_Rx
 	bool fullFlag;
 	bool cmdReady;
 	uint8_t count;
-	uint8_t buff[8];
+	uint8_t buff[RX_BUFF_SIZE];
 };
 
 struct UART2_Rx tempBuff;
@@ -97,7 +98,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   if(huart->Instance == USART2)
   {
 	  // We can accept the character
-	  if( (tempBuff.count < 8) && (tempBuff.fullFlag == false))
+	  if( (tempBuff.count < RX_BUFF_SIZE) && (tempBuff.fullFlag == false))
 	  {
 		  // It's the end of a command
 		  if(tempBuff.buff[tempBuff.count] == '\r')
@@ -135,12 +136,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+char strBuff[64];
 uint8_t response[] = "\r\nbuffer overflow\r\n>";
 tempBuff.fullFlag = false;
 tempBuff.cmdReady = false;
 tempBuff.count = 0;
 memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
+memset(&strBuff, 0x00, sizeof(strBuff));
 
+int HalVersion;
+uint32_t RevID;
+uint32_t DevID;
+uint32_t UIDw0;
+uint32_t UIDw1;
+uint32_t UIDw2;
+uint32_t IDcode;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -149,7 +159,19 @@ memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  HalVersion = HAL_GetHalVersion();
+  RevID = HAL_GetREVID();
+  DevID = HAL_GetDEVID();
+  UIDw0 = HAL_GetUIDw0();
+  UIDw1 = HAL_GetUIDw1();
+  UIDw2 = HAL_GetUIDw2();
+  IDcode = DBGMCU->IDCODE;
 
+  sprintf(&strBuff[0], "STM32_HAL L0_V%d.%d.%d (RC-%d)\r\n>",
+		  (HalVersion >> 24),
+		  (HalVersion >> 16) & 0xFF,
+		  (HalVersion >> 8) & 0xFF,
+		   HalVersion & 0xFF);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -169,7 +191,9 @@ memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   // Begin reception
+  HAL_Delay(500); // Wait for connection to Tera Term (or whatever) before printing
   HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
+  HAL_UART_Transmit_IT(&huart2, (uint8_t*)&strBuff[0], sizeof(strBuff));
 
   while (1)
   {
