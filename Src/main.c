@@ -85,7 +85,7 @@ struct UART2_Rx
 struct UART2_Rx tempBuff;
 uint8_t* ptrTempBuff = &tempBuff.buff[0];
 
-char strBuff[64];
+char strBuff[128];
 
 uint8_t cmd[] = "go";
 uint8_t reply[] = "\r\nLED Toggled...\r\n>";
@@ -101,18 +101,18 @@ void printInfo()
 	uint16_t flashSize;
 //	uint32_t RevID;
 //	uint32_t DevID;
-//	uint32_t UIDw0;
-//	uint32_t UIDw1;
-//	uint32_t UIDw2;
+	int UIDw0;
+	int UIDw1;
+	int UIDw2;
 //	uint32_t IDcode;
 
 	HalVersion = HAL_GetHalVersion();
 	flashSize = READ_REG(*((uint32_t *)FLASHSIZE_BASE));
 //	RevID = HAL_GetREVID();
 //	DevID = HAL_GetDEVID();
-//	UIDw0 = HAL_GetUIDw0();
-//	UIDw1 = HAL_GetUIDw1();
-//	UIDw2 = HAL_GetUIDw2();
+	UIDw0 = HAL_GetUIDw0();
+	UIDw1 = HAL_GetUIDw1();
+	UIDw2 = HAL_GetUIDw2();
 //	IDcode = DBGMCU->IDCODE;
 
 	sprintf(&strBuff[0], "STM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
@@ -124,7 +124,9 @@ void printInfo()
 	HAL_Delay(500); // Wait for connection to Tera Term (or whatever) before printing
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 
-	sprintf(&strBuff[0], "Flash: %d Kbytes", flashSize);
+	sprintf(&strBuff[0], "Flash: %d Kbytes\r\n", flashSize);
+	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	sprintf(&strBuff[0], "UID:   %d%d%d\r\n", UIDw2, UIDw1, UIDw0);
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 }
 
