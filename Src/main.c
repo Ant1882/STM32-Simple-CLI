@@ -85,6 +85,8 @@ struct UART2_Rx
 struct UART2_Rx tempBuff;
 uint8_t* ptrTempBuff = &tempBuff.buff[0];
 
+char strBuff[64];
+
 uint8_t cmd[] = "go";
 uint8_t reply[] = "\r\nLED Toggled...\r\n>";
 uint8_t prompt[] = "\r\n>";
@@ -93,6 +95,39 @@ uint8_t cmdFail[] = "\r\nCommand not recognised...\r\n>";
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void printInfo()
+{
+	int HalVersion;
+	uint16_t flashSize;
+//	uint32_t RevID;
+//	uint32_t DevID;
+//	uint32_t UIDw0;
+//	uint32_t UIDw1;
+//	uint32_t UIDw2;
+//	uint32_t IDcode;
+
+	HalVersion = HAL_GetHalVersion();
+	flashSize = READ_REG(*((uint32_t *)FLASHSIZE_BASE));
+//	RevID = HAL_GetREVID();
+//	DevID = HAL_GetDEVID();
+//	UIDw0 = HAL_GetUIDw0();
+//	UIDw1 = HAL_GetUIDw1();
+//	UIDw2 = HAL_GetUIDw2();
+//	IDcode = DBGMCU->IDCODE;
+
+	sprintf(&strBuff[0], "STM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
+		   (HalVersion >> 24),
+		   (HalVersion >> 16) & 0xFF,
+		   (HalVersion >> 8) & 0xFF,
+		    HalVersion & 0xFF);
+
+	HAL_Delay(500); // Wait for connection to Tera Term (or whatever) before printing
+	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+
+	sprintf(&strBuff[0], "Flash: %d Kbytes", flashSize);
+	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if(huart->Instance == USART2)
@@ -136,21 +171,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-char strBuff[64];
+
 uint8_t response[] = "\r\nbuffer overflow\r\n>";
 tempBuff.fullFlag = false;
 tempBuff.cmdReady = false;
 tempBuff.count = 0;
 memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
-memset(&strBuff, 0x00, sizeof(strBuff));
+//memset(&strBuff, 0x00, sizeof(strBuff));
 
-int HalVersion;
-uint32_t RevID;
-uint32_t DevID;
-uint32_t UIDw0;
-uint32_t UIDw1;
-uint32_t UIDw2;
-uint32_t IDcode;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -159,19 +187,7 @@ uint32_t IDcode;
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  HalVersion = HAL_GetHalVersion();
-  RevID = HAL_GetREVID();
-  DevID = HAL_GetDEVID();
-  UIDw0 = HAL_GetUIDw0();
-  UIDw1 = HAL_GetUIDw1();
-  UIDw2 = HAL_GetUIDw2();
-  IDcode = DBGMCU->IDCODE;
 
-  sprintf(&strBuff[0], "STM32_HAL L0_V%d.%d.%d (RC-%d)\r\n>",
-		  (HalVersion >> 24),
-		  (HalVersion >> 16) & 0xFF,
-		  (HalVersion >> 8) & 0xFF,
-		   HalVersion & 0xFF);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -191,9 +207,8 @@ uint32_t IDcode;
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   // Begin reception
-  HAL_Delay(500); // Wait for connection to Tera Term (or whatever) before printing
   HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
-  HAL_UART_Transmit_IT(&huart2, (uint8_t*)&strBuff[0], sizeof(strBuff));
+  printInfo();
 
   while (1)
   {
