@@ -114,9 +114,10 @@ void printInfo()
 		   (HalVersion >> 8) & 0xFF,
 		    HalVersion & 0xFF);
 
-	HAL_Delay(500); // Wait for connection to Tera Term (or whatever) before printing
+	// Wait for connection to Tera Term (or whatever) before printing
+	HAL_Delay(500);
+	// Blocking calls used deliberately
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
-
 	sprintf(&strBuff[0], "Flash  : %d Kbytes\r\n", flashSize);
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	sprintf(&strBuff[0], "UID    : %d%d%d\r\n", UIDw2, UIDw1, UIDw0);
@@ -246,6 +247,7 @@ int main(void)
 			else if(strcmp((const char*)rstCmd, (const char*)tempBuff.buff) == 0)
 			{
 				sprintf(&strBuff[0], "\r\nResetting MCU...\r\n");
+				// Deliberately blocking so we don't reset half way through the message
 				HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 				NVIC_SystemReset();
 			}
