@@ -106,7 +106,7 @@ void printInfo()
 	int UIDw1 = HAL_GetUIDw1();
 	int UIDw2 = HAL_GetUIDw2();
 
-	sprintf(&strBuff[0], "STM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
+	sprintf(&strBuff[0], "\r\nSTM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
 		   (HalVersion >> 24),
 		   (HalVersion >> 16) & 0xFF,
 		   (HalVersion >> 8) & 0xFF,
@@ -121,7 +121,7 @@ void printInfo()
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	sprintf(&strBuff[0], "Dev ID : 0x%03x\r\n", DevID);
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
-	sprintf(&strBuff[0], "Rev ID : 0x%04x\r\n", RevID);
+	sprintf(&strBuff[0], "Rev ID : 0x%04x\r\n\n>", RevID);
 	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 }
 
