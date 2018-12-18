@@ -10,20 +10,20 @@ Using the default solder bridge settings of the Nucleo board, with UART2 connect
 
 Open a terminal (115200, 8 bit, no parity, 1 stop bit, no flow control)
 
-Supported commands:
+## Supported commands:
 
-go
--Toggles the LED and prints a message
+- go
+  - Toggles the LED and prints a message
 
-reset
--Reset the MCU
+- reset
+  - Reset the MCU
 
-This project isn't written to be used with an RTOS, that will be a seperate project.
-
-Description
+## Description
 
 A single character is handled each time in the UART receive interrupt, on overflow or end of message '\r' the UART interrupts
 are disabled and a flag is set for the main application to pick up on.
 
 Once the main code has dealt with the command / error it once again enables the UART interrupts.
+
+This project isn't written to be used with an RTOS, that will be a seperate project.
 
