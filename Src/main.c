@@ -88,6 +88,7 @@ uint8_t* ptrTempBuff = &tempBuff.buff[0];
 char strBuff[128];
 bool softReset = false;
 bool pinReset = false;
+bool porReset = false;
 
 uint8_t goCmd[] = "go";
 uint8_t rstCmd[] = "reset";
@@ -112,28 +113,36 @@ void printInfo()
 	int UIDw2 = HAL_GetUIDw2();
 	int HCLKF = HAL_RCC_GetHCLKFreq();
 
+	// Wait for connection to Tera Term (or whatever) before printing
+	HAL_Delay(500);
+
 	if(pinReset)
 	{
-		sprintf(&strBuff[0], "\r\nPin triggered reset occurred...\r\n");
+		sprintf(&strBuff[0], "\r\nPin triggered reset occurred...");
 		status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 		assert_param(status == HAL_OK);
 	}
 
 	if(softReset)
 	{
-		sprintf(&strBuff[0], "\r\nSoftware triggered reset occurred...\r\n");
+		sprintf(&strBuff[0], "\r\nSoftware triggered reset occurred...");
 		status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 		assert_param(status == HAL_OK);
 	}
 
-	sprintf(&strBuff[0], "\r\nSTM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
+	if(porReset)
+	{
+		sprintf(&strBuff[0], "\r\nPower on reset occurred...");
+		status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+		assert_param(status == HAL_OK);
+	}
+
+	sprintf(&strBuff[0], "\r\n\r\nSTM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
 		   (HalVersion >> 24),
 		   (HalVersion >> 16) & 0xFF,
 		   (HalVersion >> 8) & 0xFF,
 		    HalVersion & 0xFF);
 
-	// Wait for connection to Tera Term (or whatever) before printing
-	HAL_Delay(500);
 	// Blocking calls used deliberately
 	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	assert_param(status == HAL_OK);
@@ -234,6 +243,10 @@ int main(void)
   if __HAL_RCC_GET_FLAG(RCC_FLAG_PINRST)
   {
 	pinReset = true;
+  }
+  if __HAL_RCC_GET_FLAG(RCC_FLAG_PORRST)
+  {
+	porReset = true;
   }
 
   // Clear the reset flags
