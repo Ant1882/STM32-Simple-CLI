@@ -100,6 +100,8 @@ uint8_t cmdFail[] = "\r\nCommand not recognised...\r\n>";
 /* USER CODE BEGIN 0 */
 void printInfo()
 {
+	HAL_StatusTypeDef status = HAL_OK;
+
 	uint16_t flashSize = READ_REG(*((uint16_t *)FLASHSIZE_BASE));
 
 	int HalVersion = HAL_GetHalVersion();
@@ -113,13 +115,15 @@ void printInfo()
 	if(pinReset)
 	{
 		sprintf(&strBuff[0], "\r\nPin triggered reset occurred...\r\n");
-		HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+		status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+		assert_param(status == HAL_OK);
 	}
 
 	if(softReset)
 	{
 		sprintf(&strBuff[0], "\r\nSoftware triggered reset occurred...\r\n");
-		HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+		status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+		assert_param(status == HAL_OK);
 	}
 
 	sprintf(&strBuff[0], "\r\nSTM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
@@ -131,21 +135,29 @@ void printInfo()
 	// Wait for connection to Tera Term (or whatever) before printing
 	HAL_Delay(500);
 	// Blocking calls used deliberately
-	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	assert_param(status == HAL_OK);
 	sprintf(&strBuff[0], "Flash  : %d Kbytes\r\n", flashSize);
-	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	assert_param(status == HAL_OK);
 	sprintf(&strBuff[0], "UID    : %d%d%d\r\n", UIDw2, UIDw1, UIDw0);
-	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	assert_param(status == HAL_OK);
 	sprintf(&strBuff[0], "Dev ID : 0x%03x\r\n", DevID);
-	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	assert_param(status == HAL_OK);
 	sprintf(&strBuff[0], "Rev ID : 0x%04x\r\n", RevID);
-	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	assert_param(status == HAL_OK);
 	sprintf(&strBuff[0], "HCLK   : %d Hz\r\n\n>", HCLKF);
-	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+	assert_param(status == HAL_OK);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+  HAL_StatusTypeDef status = HAL_OK;
+
   if(huart->Instance == USART2)
   {
 	  // We can accept the character
@@ -154,7 +166,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		  // It's the end of a command
 		  if(tempBuff.buff[tempBuff.count] == '\r')
 		  {
-			  HAL_UART_Abort(huart);
+			  status = HAL_UART_Abort(huart);
+			  assert_param(status == HAL_OK);
 
 			  // Signal we have a command and reset pointer
 			  tempBuff.cmdReady = true;
@@ -164,12 +177,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		  {
 			  tempBuff.count += 1;
 			  ptrTempBuff++;
-			  HAL_UART_Receive_IT(huart, ptrTempBuff, sizeof(uint8_t));
+			  status = HAL_UART_Receive_IT(huart, ptrTempBuff, sizeof(uint8_t));
+			  assert_param(status == HAL_OK);
 		  }
 	  }
 	  else // We can't accept it so start again
 	  {
-		  HAL_UART_Abort(huart);
+		  status = HAL_UART_Abort(huart);
+		  assert_param(status == HAL_OK);
 
 		  // Signal an error condition, reset count and pointer
 		  tempBuff.count = 0;
@@ -187,7 +202,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  HAL_StatusTypeDef status = HAL_OK;
   uint8_t response[] = "\r\nbuffer overflow\r\n>";
   tempBuff.fullFlag = false;
   tempBuff.cmdReady = false;
@@ -234,7 +249,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   // Begin reception
-  HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
+  status = HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
+  assert_param(status == HAL_OK);
+
   printInfo();
 
   while (1)
@@ -245,7 +262,8 @@ int main(void)
 	if(tempBuff.fullFlag == true)
 	{
 		// We ran out of buffer before getting a command!
-		HAL_UART_Abort(&huart2);
+		status = HAL_UART_Abort(&huart2);
+		assert_param(status == HAL_OK);
 
 		// Clear full flag, count, and buffer
 		tempBuff.count = 0;
@@ -253,8 +271,10 @@ int main(void)
 		memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
 
 		// Send error message & enable reception again
-		HAL_UART_Transmit_IT(&huart2, &response[0], sizeof(response));
-		HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
+		status = HAL_UART_Transmit_IT(&huart2, &response[0], sizeof(response));
+		assert_param(status == HAL_OK);
+		status = HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
+		assert_param(status == HAL_OK);
 	}
 	if(tempBuff.cmdReady == true)
 	{
@@ -268,25 +288,29 @@ int main(void)
 			{
 				// Do something and give a response
 				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				HAL_UART_Transmit_IT(&huart2, &reply[0], sizeof(reply));
+				status = HAL_UART_Transmit_IT(&huart2, &reply[0], sizeof(reply));
+				assert_param(status == HAL_OK);
 			}
 			else if(strcmp((const char*)rstCmd, (const char*)tempBuff.buff) == 0)
 			{
 				sprintf(&strBuff[0], "\r\nResetting MCU...\r\n");
 				// Deliberately blocking so we don't reset half way through the message
-				HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+				status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
+				assert_param(status == HAL_OK);
 				NVIC_SystemReset();
 			}
 			else
 			{
 				// Inform that the command is not recognised
-				HAL_UART_Transmit_IT(&huart2, &cmdFail[0], sizeof(cmdFail));
+				status = HAL_UART_Transmit_IT(&huart2, &cmdFail[0], sizeof(cmdFail));
+				assert_param(status == HAL_OK);
 			}
 		}
 		else
 		{
 			// Nothing to process, so just give a prompt
-			HAL_UART_Transmit_IT(&huart2, &prompt[0], sizeof(prompt));
+			status = HAL_UART_Transmit_IT(&huart2, &prompt[0], sizeof(prompt));
+			assert_param(status == HAL_OK);
 		}
 
 		// Clear ready flag, count, and buffer
@@ -295,7 +319,8 @@ int main(void)
 		memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
 
 		// Enable reception again
-		HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
+		status = HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
+		assert_param(status == HAL_OK);
 	}
     /* USER CODE BEGIN 3 */
   }
@@ -377,6 +402,8 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+	sprintf(&strBuff[0], "\r\nAssert Failed: file %s on line %d\r\n", file, (int)line);
+	HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
