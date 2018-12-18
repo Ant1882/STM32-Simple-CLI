@@ -137,7 +137,7 @@ void printInfo()
 		assert_param(status == HAL_OK);
 	}
 
-	sprintf(&strBuff[0], "\r\n\r\nSTM32_HAL L0_V%d.%d.%d (RC-%d)\r\n",
+	sprintf(&strBuff[0], "\r\n\r\nSTM32 HAL : L0_V%d.%d.%d (RC-%d)\r\n",
 		   (HalVersion >> 24),
 		   (HalVersion >> 16) & 0xFF,
 		   (HalVersion >> 8) & 0xFF,
@@ -146,19 +146,19 @@ void printInfo()
 	// Blocking calls used deliberately
 	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	assert_param(status == HAL_OK);
-	sprintf(&strBuff[0], "Flash  : %d Kbytes\r\n", flashSize);
+	sprintf(&strBuff[0], "Flash     : %d Kbytes\r\n", flashSize);
 	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	assert_param(status == HAL_OK);
-	sprintf(&strBuff[0], "UID    : %d%d%d\r\n", UIDw2, UIDw1, UIDw0);
+	sprintf(&strBuff[0], "UID       : %d%d%d\r\n", UIDw2, UIDw1, UIDw0);
 	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	assert_param(status == HAL_OK);
-	sprintf(&strBuff[0], "Dev ID : 0x%03x\r\n", DevID);
+	sprintf(&strBuff[0], "Dev ID    : 0x%03x\r\n", DevID);
 	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	assert_param(status == HAL_OK);
-	sprintf(&strBuff[0], "Rev ID : 0x%04x\r\n", RevID);
+	sprintf(&strBuff[0], "Rev ID    : 0x%04x\r\n", RevID);
 	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	assert_param(status == HAL_OK);
-	sprintf(&strBuff[0], "HCLK   : %d Hz\r\n\n>", HCLKF);
+	sprintf(&strBuff[0], "HCLK      : %d Hz\r\n\n>", HCLKF);
 	status = HAL_UART_Transmit(&huart2, (uint8_t*)&strBuff[0], strlen(strBuff),100);
 	assert_param(status == HAL_OK);
 }
