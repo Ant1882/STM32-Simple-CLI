@@ -242,23 +242,21 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  /* USER CODE BEGIN 2 */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  /* USER CODE BEGIN 2 */
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   // Begin reception
   status = HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
   assert_param(status == HAL_OK);
 
   printInfo();
+  /* USER CODE END 2 */
 
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
 	HAL_Delay(5);
 
 	if(tempBuff.fullFlag == true)
@@ -324,8 +322,12 @@ int main(void)
 		status = HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
 		assert_param(status == HAL_OK);
 	}
-    /* USER CODE BEGIN 3 */
+
   }
+  /* USER CODE END WHILE */
+
+  /* USER CODE BEGIN 3 */
+
   /* USER CODE END 3 */
 }
 
