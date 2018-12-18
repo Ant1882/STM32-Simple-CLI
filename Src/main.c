@@ -166,6 +166,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		  // It's the end of a command
 		  if(tempBuff.buff[tempBuff.count] == '\r')
 		  {
+			  // Disable interrupts until we have processed the command
 			  status = HAL_UART_Abort(huart);
 			  assert_param(status == HAL_OK);
 
@@ -177,17 +178,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		  {
 			  tempBuff.count += 1;
 			  ptrTempBuff++;
+			  // Enable reception again
 			  status = HAL_UART_Receive_IT(huart, ptrTempBuff, sizeof(uint8_t));
 			  assert_param(status == HAL_OK);
 		  }
 	  }
 	  else // We can't accept it so start again
 	  {
+		  // We ran out of buffer before getting a command!
 		  status = HAL_UART_Abort(huart);
 		  assert_param(status == HAL_OK);
 
-		  // Signal an error condition, reset count and pointer
-		  tempBuff.count = 0;
+		  // Signal an error condition, reset pointer
 		  tempBuff.fullFlag = true;
 		  ptrTempBuff = &tempBuff.buff[0];
 	  }
@@ -261,8 +263,9 @@ int main(void)
 
 	if(tempBuff.fullFlag == true)
 	{
-		// We ran out of buffer before getting a command!
-		status = HAL_UART_Abort(&huart2);
+		// By this point the UART interrupts have been disabled
+		// Send error message
+		status = HAL_UART_Transmit_IT(&huart2, &response[0], sizeof(response));
 		assert_param(status == HAL_OK);
 
 		// Clear full flag, count, and buffer
@@ -270,14 +273,13 @@ int main(void)
 		tempBuff.fullFlag = false;
 		memset(&tempBuff.buff, 0x00, sizeof(tempBuff.buff));
 
-		// Send error message & enable reception again
-		status = HAL_UART_Transmit_IT(&huart2, &response[0], sizeof(response));
-		assert_param(status == HAL_OK);
+		// Enable reception again
 		status = HAL_UART_Receive_IT(&huart2, &tempBuff.buff[0], sizeof(uint8_t));
 		assert_param(status == HAL_OK);
 	}
 	if(tempBuff.cmdReady == true)
 	{
+		// By this point the UART interrupts have been disabled
 		// We know the count so turn the end to a null terminator
 		tempBuff.buff[tempBuff.count] = '\0';
 
